@@ -11,4 +11,8 @@ class Product extends Model
 
     // Tambahkan baris ini untuk mengizinkan mass assignment
     protected $guarded = [];
+
+    protected $casts = [
+        'compatibility_metadata' => 'array',
+    ];
 }

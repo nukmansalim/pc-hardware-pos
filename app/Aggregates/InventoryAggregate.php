@@ -2,10 +2,12 @@
 
 namespace App\Aggregates;
 
+use App\Events\CompatibilityOverrideLogged;
 use App\Events\HardwareAdded;
 use App\Events\HardwareMarkedForRMA;
 use App\Events\HardwareReserved;
 use App\Events\HardwareSold;
+use App\Services\CompatibilityEngine;
 use Spatie\EventSourcing\AggregateRoots\AggregateRoot;
 
 class InventoryAggregate extends AggregateRoot
@@ -65,5 +67,32 @@ class InventoryAggregate extends AggregateRoot
     protected function applyHardwareSold(HardwareSold $event): void
     {
         $this->currentStatus = 'SOLD';
+    }
+
+    public function validateCartCompatibility(array $items): self
+    {
+        $engine = new CompatibilityEngine;
+        $report = $engine->check($items);
+
+        if ($report['overall'] === 'fail') {
+            $this->recordThat(new CompatibilityOverrideLogged(
+                cashierId: auth()->id(),
+                issues: $report['checks']
+            ));
+        }
+
+        return $this;
+    }
+
+    public function checkCompatibility(array $items): self
+    {
+        $engine = new CompatibilityEngine;
+        $report = $engine->check($items);
+
+        if ($report['overall'] === 'fail') {
+            throw new \Exception('Komponen tidak kompatibel! Cek detail: '.$report['checks'][0]['detail']);
+        }
+
+        return $this;
     }
 }
