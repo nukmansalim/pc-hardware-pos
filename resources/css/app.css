@@ -69,6 +69,71 @@
   If we ever want to remove these styles, we need to add an explicit border
   color utility to any element that depends on these defaults.
 */
+/* ============================================================
+   POS SEMANTIC COLOR TOKENS — from ui-standard.md §2
+   Tailwind v4: defined once here, usable as bg-pos-primary etc.
+   ============================================================ */
+@theme inline {
+    /* Brand / Primary — Deep Navy */
+    --color-pos-primary:          #1B3F80;
+    --color-pos-primary-hover:    #142F63;
+    --color-pos-primary-active:   #0D2049;
+    --color-pos-primary-subtle:   #C8D9F2;
+    --color-pos-on-primary:       #FDFBF7;
+
+    /* Accent — Warm Amber */
+    --color-pos-accent:           #C97D08;
+    --color-pos-accent-hover:     #A86405;
+    --color-pos-accent-subtle:    #FDECC8;
+    --color-pos-on-accent:        #161210;
+
+    /* Surfaces — Warm Parchment */
+    --color-pos-surface:          #F7F2E8;
+    --color-pos-surface-raised:   #FDFBF7;
+    --color-pos-surface-sunken:   #EDE5D4;
+    --color-pos-surface-panel:    #1A2433;
+    --color-pos-surface-panel-fg: #C8D9F2;
+
+    /* Borders */
+    --color-pos-border:           #D9CEBC;
+    --color-pos-border-strong:    #A89D8E;
+    --color-pos-border-panel:     #334456;
+
+    /* Text */
+    --color-pos-text-primary:     #161210;
+    --color-pos-text-secondary:   #5E534A;
+    --color-pos-text-muted:       #A89D8E;
+    --color-pos-text-inverse:     #F7F2E8;
+    --color-pos-text-link:        #1B3F80;
+    --color-pos-text-accent:      #A86405;
+
+    /* Feedback — Success (Forest Green) */
+    --color-pos-success:          #2E6B2E;
+    --color-pos-success-subtle:   #EBF5EB;
+    --color-pos-on-success:       #FDFBF7;
+
+    /* Feedback — Warning (Mustard) */
+    --color-pos-warning:          #9A7300;
+    --color-pos-warning-subtle:   #FBF6E4;
+    --color-pos-on-warning:       #161210;
+
+    /* Feedback — Danger (Crimson) */
+    --color-pos-danger:           #8B2020;
+    --color-pos-danger-subtle:    #FAEAEA;
+    --color-pos-on-danger:        #FDFBF7;
+
+    /* Feedback — Info (Navy) */
+    --color-pos-info:             #1B3F80;
+    --color-pos-info-subtle:      #EAF0FA;
+    --color-pos-on-info:          #FDFBF7;
+
+    /* Terminal Panel Chrome */
+    --color-pos-terminal-900:     #111820;
+    --color-pos-terminal-800:     #1A2433;
+    --color-pos-terminal-700:     #243040;
+    --color-pos-terminal-600:     #334456;
+}
+
 @layer base {
     *,
     ::after,

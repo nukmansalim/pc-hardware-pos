@@ -17,23 +17,23 @@
 | Metric | Value |
 |---|---|
 | Total deliverables | 22 |
-| Completed | 0 |
+| Completed | 14 |
 | In Progress | 0 |
-| Remaining | 22 |
-| Last updated | — |
+| Remaining | 8 |
+| Last updated | 2026-05-26 |
 
 ---
 
-## Section 3.1 — Serialized Cart & Checkout UI &nbsp;`0 / 6`
+## Section 3.1 — Serialized Cart & Checkout UI &nbsp;`6 / 6`
 
 | # | Deliverable | File Path | Status | Completed |
 |---|---|---|---|---|
-| 1.1 | Main POS page (Inertia page component) | `resources/js/pages/Pos/Index.vue` | ⬜ TODO | — |
-| 1.2 | Serialized cart list panel | `resources/js/components/pos/CartPanel.vue` | ⬜ TODO | — |
-| 1.3 | Single serial-number cart line w/ status badges | `resources/js/components/pos/CartLineItem.vue` | ⬜ TODO | — |
-| 1.4 | Checkout / payment modal (F12 trigger) | `resources/js/components/pos/CheckoutModal.vue` | ⬜ TODO | — |
-| 1.5 | Keyboard-first navigation (F2 / ↑↓ / Delete / F10 / F12 / Escape) | Implemented inside `Index.vue` + `CartPanel.vue` | ⬜ TODO | — |
-| 1.6 | `CartLineItem` TypeScript interface (`CartLineItem`) | Defined in `Index.vue` or shared types file | ⬜ TODO | — |
+| 1.1 | Main POS page (Inertia page component) | `resources/js/pages/Pos/Index.vue` | ✅ Done | 2026-05-26 |
+| 1.2 | Serialized cart list panel | `resources/js/components/pos/CartPanel.vue` | ✅ Done | 2026-05-26 |
+| 1.3 | Single serial-number cart line w/ status badges | `resources/js/components/pos/CartLineItem.vue` | ✅ Done | 2026-05-26 |
+| 1.4 | Checkout / payment modal (F12 trigger) | `resources/js/components/pos/CheckoutModal.vue` | ✅ Done | 2026-05-26 |
+| 1.5 | Keyboard-first navigation (F2 / ↑↓ / Delete / F10 / F12 / Escape) | Implemented inside `Index.vue` + `CartPanel.vue` | ✅ Done | 2026-05-26 |
+| 1.6 | `CartLineItem` TypeScript interface (`CartLineItem`) | `resources/js/types/pos.ts` | ✅ Done | 2026-05-26 |
 
 **Acceptance criteria:**
 - Each serial number renders as its own cart line (no grouped quantities).
@@ -43,15 +43,15 @@
 
 ---
 
-## Section 3.2 — Real-Time Compatibility Dashboard ("Will It Boot?") &nbsp;`0 / 5`
+## Section 3.2 — Real-Time Compatibility Dashboard ("Will It Boot?") &nbsp;`5 / 5`
 
 | # | Deliverable | File Path | Status | Completed |
 |---|---|---|---|---|
-| 2.1 | Build Status panel (always visible while cart has items) | `resources/js/components/pos/BuildStatus.vue` | ⬜ TODO | — |
-| 2.2 | Incompatibility override confirmation modal | `resources/js/components/pos/OverrideModal.vue` | ⬜ TODO | — |
-| 2.3 | Reactive compatibility composable + Echo listener | `resources/js/composables/useCompatibility.ts` | ⬜ TODO | — |
-| 2.4 | Client-side wattage check (sum `tdp_watts` vs `capacity_watts`) | Inside `useCompatibility.ts` | ⬜ TODO | — |
-| 2.5 | `CompatibilityReport` + `CompatibilityCheck` TypeScript interfaces | Defined in `useCompatibility.ts` or shared types file | ⬜ TODO | — |
+| 2.1 | Build Status panel (always visible while cart has items) | `resources/js/components/pos/BuildStatus.vue` | ✅ Done | 2026-05-26 |
+| 2.2 | Incompatibility override confirmation modal | `resources/js/components/pos/OverrideModal.vue` | ✅ Done | 2026-05-26 |
+| 2.3 | Reactive compatibility composable + Echo listener | `resources/js/composables/useCompatibility.ts` | ✅ Done | 2026-05-26 |
+| 2.4 | Client-side wattage check (sum `tdp_watts` vs `capacity_watts`) | Inside `useCompatibility.ts` | ✅ Done | 2026-05-26 |
+| 2.5 | `CompatibilityReport` + `CompatibilityCheck` TypeScript interfaces | `resources/js/types/pos.ts` | ✅ Done | 2026-05-26 |
 
 **Acceptance criteria:**
 - Panel shows ✔ / ✘ / ⚠ per check with label + detail string.
@@ -80,13 +80,13 @@
 
 ---
 
-## Section 3.4 — Real-Time WebSocket Notifications &nbsp;`0 / 3`
+## Section 3.4 — Real-Time WebSocket Notifications &nbsp;`3 / 3`
 
 | # | Deliverable | File Path | Status | Completed |
 |---|---|---|---|---|
-| 4.1 | Laravel Echo bootstrap (Reverb driver) | `resources/js/plugins/echo.ts` | ⬜ TODO | — |
-| 4.2 | Notifications composable (Echo subscriptions + reactive list) | `resources/js/composables/useNotifications.ts` | ⬜ TODO | — |
-| 4.3 | Toast stack component | `resources/js/components/ui/ToastStack.vue` | ⬜ TODO | — |
+| 4.1 | Laravel Echo bootstrap (Reverb driver) | `resources/js/app.ts` (via `configureEcho`) | ✅ Done | 2026-05-26 |
+| 4.2 | Notifications composable (Echo subscriptions + reactive list) | `resources/js/composables/useNotifications.ts` | ✅ Done | 2026-05-26 |
+| 4.3 | Toast stack component | `resources/js/components/ui/ToastStack.vue` | ✅ Done | 2026-05-26 |
 
 **Acceptance criteria:**
 - Echo bootstrapped with `VITE_REVERB_*` env vars; no hardcoded secrets.
@@ -116,6 +116,7 @@
 | Date | Agent | Items Completed | Notes |
 |---|---|---|---|
 | — | — | — | Project initialized; no work started yet |
+| 2026-05-26 | Antigravity | 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 2.1, 2.2, 2.3, 2.4, 2.5, 4.1, 4.2, 4.3 | Section 3.1 (all), 3.2 (all), 3.4 (all) complete. Tailwind v4 tokens added to app.css. Section 3.3 (hardware APIs) remains. |
 
 ---
 
