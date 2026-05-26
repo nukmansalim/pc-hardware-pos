@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('brand');
             $table->string('sku')->unique();
             $table->string('category');
-
+            $table->jsonb('compatibility_metadata')->nullable();
             $table->bigInteger('price_cents');
             $table->integer('min_stock_level')->default(5);
             $table->timestamps();

@@ -27,3 +27,6 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+# Block any temporary output files from DBCode/Tinker
+*::*
+ist();q
