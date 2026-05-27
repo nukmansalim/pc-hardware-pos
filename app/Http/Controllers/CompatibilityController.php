@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\InventoryItem;
-use App\Services\CompatibilityEngine;
 use Illuminate\Http\Request;
 
 class CompatibilityController extends Controller
@@ -21,8 +20,10 @@ class CompatibilityController extends Controller
             ->whereIn('id', $itemIds)
             ->get();
 
-        $engine = new CompatibilityEngine;
-        $report = $engine->check($inventoryItems->all());
+        $aggregateId = 'compatibility-'.auth()->id();
+
+        $aggregate = InventoryAggregate::retrieve($aggregateId);
+        $report = $aggregate->validateCartCompatibility($inventoryItems->all());
 
         return response()->json($report);
     }
