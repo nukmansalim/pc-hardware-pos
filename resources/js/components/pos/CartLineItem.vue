@@ -1,9 +1,9 @@
 <script setup lang="ts">
 // 1. Vue core imports
+import { Trash2 } from 'lucide-vue-next'
 import { computed } from 'vue'
 
 // 2. Third-party imports
-import { Trash2 } from 'lucide-vue-next'
 
 // 3. Types
 import type { CartLineItem } from '@/types/pos'

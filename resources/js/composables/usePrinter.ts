@@ -1,10 +1,11 @@
 import { ref } from 'vue'
 import {
     buildReceiptBuffer,
-    buildRMABuffer,
-    type ReceiptTransaction,
-    type RMATicket,
+    buildRMABuffer
+    
+    
 } from '@/utils/escpos'
+import type {ReceiptTransaction, RMATicket} from '@/utils/escpos';
 
 // ---------------------------------------------------------------------------
 // usePrinter — WebUSB / Web Serial ESC/POS thermal receipt printer
@@ -46,14 +47,22 @@ export function usePrinter() {
     // ── Internal: write bytes ─────────────────────────────────────────────────
     const writeBytes = async (data: Uint8Array): Promise<void> => {
         if (mode.value === 'usb') {
-            if (!usbDevice || usbEndpoint === null) throw new Error('USB device not ready')
+            if (!usbDevice || usbEndpoint === null) {
+throw new Error('USB device not ready')
+}
+
             await usbDevice.transferOut(usbEndpoint, data)
+
             return
         }
 
         if (mode.value === 'serial') {
-            if (!serialWriter) throw new Error('Serial writer not ready')
+            if (!serialWriter) {
+throw new Error('Serial writer not ready')
+}
+
             await serialWriter.write(data)
+
             return
         }
 
@@ -64,9 +73,13 @@ export function usePrinter() {
     const connectUSB = async () => {
         if (!('usb' in navigator)) {
             error.value = 'WebUSB is not supported in this browser.'
+
             return
         }
-        if (isConnected.value) return
+
+        if (isConnected.value) {
+return
+}
 
         isConnecting.value = true
         error.value = null
@@ -88,7 +101,10 @@ export function usePrinter() {
             const endpoint = alternate.endpoints.find(
                 (ep: USBEndpoint) => ep.direction === 'out' && ep.type === 'bulk'
             )
-            if (!endpoint) throw new Error('No bulk OUT endpoint found on USB printer')
+
+            if (!endpoint) {
+throw new Error('No bulk OUT endpoint found on USB printer')
+}
 
             usbEndpoint = endpoint.endpointNumber
             mode.value = 'usb'
@@ -98,6 +114,7 @@ export function usePrinter() {
                 error.value = `USB connection failed: ${(err as Error).message}`
                 console.error('[usePrinter] USB error:', err)
             }
+
             usbDevice = null
             usbEndpoint = null
         } finally {
@@ -109,9 +126,13 @@ export function usePrinter() {
     const connectSerial = async (options: SerialOptions = SERIAL_OPTIONS) => {
         if (!('serial' in navigator)) {
             error.value = 'Web Serial API is not supported in this browser.'
+
             return
         }
-        if (isConnected.value) return
+
+        if (isConnected.value) {
+return
+}
 
         isConnecting.value = true
         error.value = null
@@ -128,6 +149,7 @@ export function usePrinter() {
                 error.value = `Serial connection failed: ${(err as Error).message}`
                 console.error('[usePrinter] Serial error:', err)
             }
+
             serialPort = null
             serialWriter = null
         } finally {
@@ -150,6 +172,7 @@ export function usePrinter() {
                     serialWriter.releaseLock()
                     serialWriter = null
                 }
+
                 if (serialPort) {
                     await serialPort.close()
                     serialPort = null
@@ -170,6 +193,7 @@ export function usePrinter() {
     const printReceipt = async (transaction: ReceiptTransaction): Promise<void> => {
         if (!isConnected.value) {
             error.value = 'No printer connected. Please connect a printer first.'
+
             return
         }
 
@@ -180,6 +204,7 @@ export function usePrinter() {
         } catch (err) {
             error.value = `Print failed: ${(err as Error).message}`
             console.error('[usePrinter] printReceipt error:', err)
+
             throw err
         }
     }
@@ -190,6 +215,7 @@ export function usePrinter() {
     const printRMATicket = async (rma: RMATicket): Promise<void> => {
         if (!isConnected.value) {
             error.value = 'No printer connected. Please connect a printer first.'
+
             return
         }
 
@@ -200,6 +226,7 @@ export function usePrinter() {
         } catch (err) {
             error.value = `Print failed: ${(err as Error).message}`
             console.error('[usePrinter] printRMATicket error:', err)
+
             throw err
         }
     }

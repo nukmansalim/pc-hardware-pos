@@ -1,9 +1,9 @@
 <script setup lang="ts">
 // 1. Vue core imports
+import { X, AlertTriangle, ShieldAlert } from 'lucide-vue-next'
 import { ref, computed } from 'vue'
 
 // 2. Third-party imports
-import { X, AlertTriangle, ShieldAlert } from 'lucide-vue-next'
 
 // 3. Types
 import type { CompatibilityCheck } from '@/types/pos'
@@ -28,7 +28,10 @@ const failedChecks = computed(() => props.checks.filter((c) => c.status === 'fai
 
 // 8. Methods
 const handleOverride = () => {
-    if (!confirmed.value) return
+    if (!confirmed.value) {
+return
+}
+
     emit('override')
     confirmed.value = false
 }
@@ -39,7 +42,9 @@ const handleClose = () => {
 }
 
 const handleKeydown = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') handleClose()
+    if (e.key === 'Escape') {
+handleClose()
+}
 }
 </script>
 

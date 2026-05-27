@@ -35,6 +35,7 @@ export function useBarcodeScan(onScan: (barcode: string) => void) {
             clearTimeout(idleTimer)
             idleTimer = null
         }
+
         const code = buffer.trim()
         buffer = ''
         isScanning.value = false
@@ -63,6 +64,7 @@ export function useBarcodeScan(onScan: (barcode: string) => void) {
                 event.stopPropagation()
                 flushBuffer()
             }
+
             return
         }
 
@@ -71,6 +73,7 @@ export function useBarcodeScan(onScan: (barcode: string) => void) {
             // Human typing interrupted the buffer — discard partial scan
             buffer = ''
             isScanning.value = false
+
             if (idleTimer !== null) {
                 clearTimeout(idleTimer)
                 idleTimer = null
@@ -83,7 +86,10 @@ export function useBarcodeScan(onScan: (barcode: string) => void) {
             isScanning.value = true
 
             // Reset idle flush timer
-            if (idleTimer !== null) clearTimeout(idleTimer)
+            if (idleTimer !== null) {
+clearTimeout(idleTimer)
+}
+
             idleTimer = setTimeout(flushBuffer, IDLE_FLUSH_MS)
         }
     }
@@ -96,7 +102,10 @@ export function useBarcodeScan(onScan: (barcode: string) => void) {
 
     onUnmounted(() => {
         window.removeEventListener('keydown', handleKeyDown, { capture: true })
-        if (idleTimer !== null) clearTimeout(idleTimer)
+
+        if (idleTimer !== null) {
+clearTimeout(idleTimer)
+}
     })
 
     return {

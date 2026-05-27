@@ -7,10 +7,10 @@
 // =============================================================================
 
 // 1. Vue core imports
+import { PackagePlus, X } from 'lucide-vue-next'
 import { ref, watch } from 'vue'
 
 // 2. Third-party imports
-import { PackagePlus, X } from 'lucide-vue-next'
 
 // 3. Types
 import type { CartLineItem } from '@/types/pos'
@@ -32,7 +32,9 @@ const bypassFuture = ref(false)
 
 // Reset checkbox state whenever the modal opens fresh
 watch(() => props.open, (isOpen) => {
-    if (isOpen) bypassFuture.value = false
+    if (isOpen) {
+bypassFuture.value = false
+}
 })
 
 // 7. Methods
@@ -49,8 +51,13 @@ const handleClose = () => {
 }
 
 const handleKeydown = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') handleClose()
-    if (e.key === 'Enter') handleConfirm()
+    if (e.key === 'Escape') {
+handleClose()
+}
+
+    if (e.key === 'Enter') {
+handleConfirm()
+}
 }
 </script>
 

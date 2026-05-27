@@ -45,10 +45,12 @@ export function concatBytes(...chunks: Uint8Array[]): Uint8Array {
     const totalLength = chunks.reduce((sum, c) => sum + c.length, 0)
     const result = new Uint8Array(totalLength)
     let offset = 0
+
     for (const chunk of chunks) {
         result.set(chunk, offset)
         offset += chunk.length
     }
+
     return result
 }
 
@@ -74,12 +76,14 @@ export function divider(char = '-', width = 42): Uint8Array {
 export function twoColumn(left: string, right: string, width = 42): Uint8Array {
     const paddingLen = Math.max(1, width - left.length - right.length)
     const row = left + ' '.repeat(paddingLen) + right
+
     return line(row.slice(0, width))
 }
 
 /** Center-pad a string within `width` columns */
 export function centered(text: string, width = 42): Uint8Array {
     const pad = Math.max(0, Math.floor((width - text.length) / 2))
+
     return line(' '.repeat(pad) + text)
 }
 
@@ -282,10 +286,17 @@ function wrapText(text: string, maxWidth: number): string[] {
         if ((currentLine + ' ' + word).trim().length <= maxWidth) {
             currentLine = (currentLine + ' ' + word).trim()
         } else {
-            if (currentLine) lines.push(currentLine)
+            if (currentLine) {
+lines.push(currentLine)
+}
+
             currentLine = word.slice(0, maxWidth)
         }
     }
-    if (currentLine) lines.push(currentLine)
+
+    if (currentLine) {
+lines.push(currentLine)
+}
+
     return lines
 }

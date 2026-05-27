@@ -1,9 +1,9 @@
 <script setup lang="ts">
 // 1. Vue core imports
+import { ShoppingCart, Search } from 'lucide-vue-next'
 import { computed, ref, nextTick } from 'vue'
 
 // 2. Third-party imports
-import { ShoppingCart, Search } from 'lucide-vue-next'
 
 // 3. Internal components
 import CartLineItem from '@/components/pos/CartLineItem.vue'
@@ -63,11 +63,18 @@ const focusedIndex = computed(() =>
 
 // 9. Methods
 const moveFocus = (direction: 'up' | 'down') => {
-    if (props.items.length === 0) return
+    if (props.items.length === 0) {
+return
+}
+
     let nextIndex = direction === 'down'
         ? Math.min(focusedIndex.value + 1, props.items.length - 1)
         : Math.max(focusedIndex.value - 1, 0)
-    if (focusedIndex.value === -1) nextIndex = 0
+
+    if (focusedIndex.value === -1) {
+nextIndex = 0
+}
+
     const nextId = props.items[nextIndex].id
     emit('update:focusedId', nextId)
     nextTick(() => {
@@ -77,7 +84,9 @@ const moveFocus = (direction: 'up' | 'down') => {
 }
 
 const handleRemoveFocused = () => {
-    if (props.focusedId) emit('removeItem', props.focusedId)
+    if (props.focusedId) {
+emit('removeItem', props.focusedId)
+}
 }
 
 const selectSerial = (result: ProductSearchResult, serial: { id: string; serial_number: string }) => {

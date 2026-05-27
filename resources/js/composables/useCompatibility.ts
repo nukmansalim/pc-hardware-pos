@@ -1,5 +1,5 @@
-import { ref, computed, watch } from 'vue'
 import axios from 'axios'
+import { ref, computed, watch } from 'vue'
 import type { CompatibilityCheck, CompatibilityReport, CartLineItem } from '@/types/pos'
 
 // ---------------------------------------------------------------------------
@@ -18,8 +18,12 @@ import type { CompatibilityCheck, CompatibilityReport, CartLineItem } from '@/ty
 /** Minimal debounce utility — avoids importing all of lodash */
 function debounce<T extends (...args: Parameters<T>) => void>(fn: T, delay: number): T {
     let timer: ReturnType<typeof setTimeout> | null = null
+
     return ((...args: Parameters<T>) => {
-        if (timer !== null) clearTimeout(timer)
+        if (timer !== null) {
+clearTimeout(timer)
+}
+
         timer = setTimeout(() => {
             timer = null
             fn(...args)
@@ -40,11 +44,13 @@ export function useCompatibility(cartItems: () => CartLineItem[]) {
         const items = cartItems()
         const totalTdp = items.reduce((sum, item) => {
             const tdp = typeof item.specs?.tdp_watts === 'number' ? item.specs.tdp_watts : 0
+
             return sum + tdp
         }, 0)
 
         const psuItem = items.find((i) => {
             const cap = i.specs?.capacity_watts
+
             return typeof cap === 'number' && cap > 0
         })
         const psuCapacity = psuItem ? (psuItem.specs.capacity_watts as number) : 0
@@ -81,6 +87,7 @@ export function useCompatibility(cartItems: () => CartLineItem[]) {
         const totalTdp = items.reduce((s, i) =>
             s + (typeof i.specs?.tdp_watts === 'number' ? i.specs.tdp_watts : 0), 0)
         const psuItem = items.find((i) => typeof i.specs?.capacity_watts === 'number' && (i.specs.capacity_watts as number) > 0)
+
         return {
             overall: watt.status === 'pass' ? 'ok' : 'warn',
             checks: [watt],
@@ -94,7 +101,10 @@ export function useCompatibility(cartItems: () => CartLineItem[]) {
     // Once server responds: show full server report with client wattage merged.
     const effectiveReport = computed<CompatibilityReport | null>(() => {
         const items = cartItems()
-        if (items.length === 0) return null
+
+        if (items.length === 0) {
+return null
+}
 
         if (isLoading.value || report.value === null) {
             // In-flight or not yet fetched — use instant client-only report
@@ -124,6 +134,7 @@ export function useCompatibility(cartItems: () => CartLineItem[]) {
             report.value = null
             isLoading.value = false
             hasNetworkError.value = false
+
             return
         }
 
@@ -154,8 +165,10 @@ export function useCompatibility(cartItems: () => CartLineItem[]) {
                 report.value = null
                 isLoading.value = false
                 hasNetworkError.value = false
+
                 return
             }
+
             isLoading.value = true
             fetchServerValidation(newItems)
         },

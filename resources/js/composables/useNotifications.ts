@@ -1,5 +1,5 @@
-import { ref } from 'vue'
 import { echo } from '@laravel/echo-vue'
+import { ref } from 'vue'
 import type { PosNotification } from '@/types/pos'
 
 // ---------------------------------------------------------------------------

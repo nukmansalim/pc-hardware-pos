@@ -1,9 +1,9 @@
 <script setup lang="ts">
 // 1. Vue core imports
+import { X, CreditCard, Banknote, Smartphone } from 'lucide-vue-next'
 import { ref, computed, watch } from 'vue'
 
 // 2. Third-party imports
-import { X, CreditCard, Banknote, Smartphone } from 'lucide-vue-next'
 
 // 3. Types
 import type { CartLineItem } from '@/types/pos'
@@ -41,7 +41,10 @@ const tax = computed(() => Math.round(subtotal.value * 0.11)) // PPN 11%
 const total = computed(() => subtotal.value + tax.value)
 
 const change = computed(() => {
-    if (paymentMethod.value !== 'cash' || cashReceived.value === null) return null
+    if (paymentMethod.value !== 'cash' || cashReceived.value === null) {
+return null
+}
+
     return cashReceived.value - total.value
 })
 
@@ -49,6 +52,7 @@ const isValid = computed(() => {
     if (paymentMethod.value === 'cash') {
         return cashReceived.value !== null && cashReceived.value >= total.value
     }
+
     return true
 })
 
@@ -57,7 +61,10 @@ const fmt = (n: number) =>
 
 // 8. Methods
 const handleConfirm = () => {
-    if (!isValid.value) return
+    if (!isValid.value) {
+return
+}
+
     isConfirming.value = true
     emit('confirm', {
         paymentMethod: paymentMethod.value,
@@ -83,7 +90,9 @@ watch(() => props.open, (val) => {
 
 // Escape key to close
 const handleKeydown = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') handleClose()
+    if (e.key === 'Escape') {
+handleClose()
+}
 }
 </script>
 

@@ -30,7 +30,9 @@ export function useWebSerialScanner(onScan: (barcode: string) => void) {
 
     // ── Internal: read loop ──────────────────────────────────────────────────
     const startReadLoop = async (serialPort: SerialPort) => {
-        if (!serialPort.readable) return
+        if (!serialPort.readable) {
+return
+}
 
         const textDecoder = new TextDecoderStream()
         const pipeAbort = new AbortController()
@@ -49,13 +51,20 @@ export function useWebSerialScanner(onScan: (barcode: string) => void) {
         try {
             while (true) {
                 const { value, done } = await reader.read()
-                if (done) break
-                if (value === undefined) continue
+
+                if (done) {
+break
+}
+
+                if (value === undefined) {
+continue
+}
 
                 lineBuffer += value
 
                 // Process all complete lines in the buffer
                 let newlineIndex: number
+
                 while ((newlineIndex = lineBuffer.indexOf(LINE_TERMINATOR)) !== -1) {
                     const line = lineBuffer.slice(0, newlineIndex).trim()
                     lineBuffer = lineBuffer.slice(newlineIndex + 1)
@@ -81,9 +90,13 @@ export function useWebSerialScanner(onScan: (barcode: string) => void) {
     const connect = async (options: SerialOptions = { baudRate: 9600 }) => {
         if (!isSupported.value) {
             error.value = 'Web Serial API is not supported in this browser.'
+
             return
         }
-        if (isConnected.value) return
+
+        if (isConnected.value) {
+return
+}
 
         isConnecting.value = true
         error.value = null
@@ -114,15 +127,19 @@ export function useWebSerialScanner(onScan: (barcode: string) => void) {
 
     // ── disconnect — gracefully closes port and cleans up ────────────────────
     const disconnect = async () => {
-        if (!port) return
+        if (!port) {
+return
+}
 
         try {
             // Abort the pipe so the read loop exits cleanly
             abortController?.abort()
+
             if (reader) {
                 await reader.cancel()
                 reader = null
             }
+
             await port.close()
         } catch (err) {
             console.warn('[useWebSerialScanner] Disconnect error:', err)

@@ -172,7 +172,10 @@ export function useProductSearch(
      */
     const exactMatch = computed<CartLineItem | null>(() => {
         const q = searchQuery.value.trim().toUpperCase()
-        if (q.length < 4) return null // Serials are always longer than 3 chars
+
+        if (q.length < 4) {
+return null
+} // Serials are always longer than 3 chars
 
         for (const product of MOCK_CATALOG) {
             const serial = product.inventory.find(
@@ -181,6 +184,7 @@ export function useProductSearch(
                     inv.status === 'IN_STOCK' &&
                     !cartSerials.value.has(inv.serial_number),
             )
+
             if (serial) {
                 return {
                     id: serial.id,
@@ -193,6 +197,7 @@ export function useProductSearch(
                 }
             }
         }
+
         return null
     })
 
@@ -201,7 +206,9 @@ export function useProductSearch(
      * This handles the barcode scanner use-case where a full SN is emitted.
      */
     watch(exactMatch, (match) => {
-        if (match) onExactMatch(match)
+        if (match) {
+onExactMatch(match)
+}
     })
 
     /**
@@ -210,9 +217,15 @@ export function useProductSearch(
      */
     const searchResults = computed<ProductSearchResult[]>(() => {
         const q = searchQuery.value.trim().toLowerCase()
-        if (q.length < 2) return []
+
+        if (q.length < 2) {
+return []
+}
+
         // If there's an exact SN match, the watcher handles it; suppress dropdown
-        if (exactMatch.value) return []
+        if (exactMatch.value) {
+return []
+}
 
         return MOCK_CATALOG
             .filter(
