@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Aggregates\InventoryAggregate;
 use App\Models\InventoryItem;
 use Illuminate\Http\Request;
 
