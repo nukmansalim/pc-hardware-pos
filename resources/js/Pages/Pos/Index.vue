@@ -7,18 +7,18 @@
 // =============================================================================
 
 // 1. Vue core imports
+import { usePage } from '@inertiajs/vue3'
+import { Monitor } from 'lucide-vue-next'
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 
 // 2. Third-party imports
-import { usePage } from '@inertiajs/vue3'
-import { Monitor, PackageSearch } from 'lucide-vue-next'
 
 // 3. Internal components
-import CartPanel from '@/components/pos/CartPanel.vue'
+import AddToCartConfirmModal from '@/components/pos/AddToCartConfirmModal.vue'
 import BuildStatus from '@/components/pos/BuildStatus.vue'
+import CartPanel from '@/components/pos/CartPanel.vue'
 import CheckoutModal from '@/components/pos/CheckoutModal.vue'
 import OverrideModal from '@/components/pos/OverrideModal.vue'
-import AddToCartConfirmModal from '@/components/pos/AddToCartConfirmModal.vue'
 import ToastStack from '@/components/ui/ToastStack.vue'
 
 // 4. Composables
@@ -92,7 +92,10 @@ const { notifications, subscribe, unsubscribe, dismiss, notify } = useNotificati
 // MOCK — remove when Inertia prop is available; useProductSearch uses mock catalog
 const handleAddItem = (item: CartLineItem) => {
     // Guard: prevent adding the same serial number twice
-    if (cart.value.some((i) => i.serial_number === item.serial_number)) return
+    if (cart.value.some((i) => i.serial_number === item.serial_number)) {
+return
+}
+
     cart.value = [...cart.value, item]
     searchQuery.value = ''
     notify('success', 'Item Added', `${item.product_name} — SN: ${item.serial_number}`)
@@ -117,7 +120,11 @@ const handleAddConfirm = (bypass: boolean) => {
         bypassAddConfirm.value = true
         localStorage.setItem(BYPASS_KEY, 'true')
     }
-    if (pendingAddItem.value) handleAddItem(pendingAddItem.value)
+
+    if (pendingAddItem.value) {
+handleAddItem(pendingAddItem.value)
+}
+
     showAddConfirm.value = false
     pendingAddItem.value = null
 }
@@ -150,7 +157,10 @@ const failedCompatibilityChecks = computed<CompatibilityCheck[]>(() =>
 // ---------------------------------------------------------------------------
 const removeItem = (id: string) => {
     cart.value = cart.value.filter((i) => i.id !== id)
-    if (cart.value.length === 0) clearReport()
+
+    if (cart.value.length === 0) {
+clearReport()
+}
 }
 
 const handleCheckout = () => {
@@ -158,8 +168,10 @@ const handleCheckout = () => {
         if (failedCompatibilityChecks.value.length > 0) {
             showOverride.value = true
         }
+
         return
     }
+
     showCheckout.value = true
 }
 
@@ -194,6 +206,7 @@ const handleGlobalKeydown = (e: KeyboardEvent) => {
                 e.preventDefault()
                 cartPanelRef.value?.focusSearch()
             }
+
             break
         case 'F10':
             e.preventDefault()
@@ -204,10 +217,23 @@ const handleGlobalKeydown = (e: KeyboardEvent) => {
             handleCheckout()
             break
         case 'Escape':
-            if (showCheckout.value) { showCheckout.value = false; return }
-            if (showOverride.value) { showOverride.value = false; return }
+            if (showCheckout.value) {
+ showCheckout.value = false;
+
+ return 
+}
+
+            if (showOverride.value) {
+ showOverride.value = false;
+
+ return 
+}
+
             // Blur search input on Escape if focused
-            if (inInput) (e.target as HTMLElement).blur()
+            if (inInput) {
+(e.target as HTMLElement).blur()
+}
+
             break
     }
 }
@@ -227,7 +253,10 @@ onUnmounted(() => {
 
 // Re-subscribe if cashier changes (edge case: login switch without page reload)
 watch(cashierId, (newId, oldId) => {
-    if (oldId) unsubscribe(oldId)
+    if (oldId) {
+unsubscribe(oldId)
+}
+
     subscribe(newId)
 })
 </script>

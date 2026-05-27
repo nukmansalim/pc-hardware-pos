@@ -1,12 +1,8 @@
-<script setup>
-import { ref } from 'vue'
-import { useForm, usePage } from '@inertiajs/vue3'
-import AppLayout from '@/Layouts/AppLayout.vue'
-import SectionBorder from '@/Components/SectionBorder.vue'
-import UpdatePasswordForm from './Partials/UpdatePasswordForm.vue'
+<script setup lang="ts">
 import TwoFactorAuthenticationForm from './Partials/TwoFactorAuthenticationForm.vue'
-
-const page = usePage()
+import UpdatePasswordForm from './Partials/UpdatePasswordForm.vue'
+import SectionBorder from '@/Components/SectionBorder.vue'
+import AppLayout from '@/Layouts/AppLayout.vue'
 </script>
 
 <template>
