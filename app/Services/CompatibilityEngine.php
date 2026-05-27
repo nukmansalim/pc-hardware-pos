@@ -35,7 +35,7 @@ class CompatibilityEngine
         $psuCapacity = $psu ? ($psu->compatibility_metadata['capacity_watts'] ?? 0) : 0;
 
         $results[] = [
-            'id' => 'wattage_check',
+            'id' => 'client_wattage',
             'label' => 'Estimated Wattage',
             // Status warning jika melebihi kapasitas ATAU jika tidak ada PSU sama sekali
             'status' => ($psuCapacity > 0 && $totalTdp <= $psuCapacity) ? 'pass' : 'warning',
@@ -65,12 +65,17 @@ class CompatibilityEngine
 
     private function determineOverallStatus(array $results): string
     {
+        $hasWarning = false;
+
         foreach ($results as $check) {
             if ($check['status'] === 'fail') {
                 return 'fail';
             }
+            if ($check['status'] === 'warning') {
+                $hasWarning = true;
+            }
         }
 
-        return 'ok';
+        return $hasWarning ? 'warn' : 'ok';
     }
 }

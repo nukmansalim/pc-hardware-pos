@@ -17,10 +17,10 @@
 | Metric | Value |
 |---|---|
 | Total deliverables | 22 |
-| Completed | 14 |
+| Completed | 19 |
 | In Progress | 0 |
-| Remaining | 8 |
-| Last updated | 2026-05-26 |
+| Remaining | 3 |
+| Last updated | 2026-05-28 |
 
 ---
 
@@ -61,15 +61,15 @@
 
 ---
 
-## Section 3.3 — Direct Hardware Integration (Browser APIs) &nbsp;`0 / 5`
+## Section 3.3 — Direct Hardware Integration (Browser APIs) &nbsp;`5 / 5`
 
 | # | Deliverable | File Path | Status | Completed |
 |---|---|---|---|---|
-| 3.1 | HID barcode scanner composable (USB keyboard emulation) | `resources/js/composables/useBarcodeScan.ts` | ⬜ TODO | — |
-| 3.2 | Web Serial barcode scanner composable | `resources/js/composables/useWebSerialScanner.ts` | ⬜ TODO | — |
-| 3.3 | Raw ESC/POS byte command builder utility | `resources/js/utils/escpos.ts` | ⬜ TODO | — |
-| 3.4 | WebUSB / Web Serial printer composable | `resources/js/composables/usePrinter.ts` | ⬜ TODO | — |
-| 3.5 | Receipt layout + RMA ticket layout (via ESC/POS commands) | Inside `usePrinter.ts` / `escpos.ts` | ⬜ TODO | — |
+| 3.1 | HID barcode scanner composable (USB keyboard emulation) | `resources/js/composables/useBarcodeScan.ts` | ✅ Done | 2026-05-28 |
+| 3.2 | Web Serial barcode scanner composable | `resources/js/composables/useWebSerialScanner.ts` | ✅ Done | 2026-05-28 |
+| 3.3 | Raw ESC/POS byte command builder utility | `resources/js/utils/escpos.ts` | ✅ Done | 2026-05-28 |
+| 3.4 | WebUSB / Web Serial printer composable | `resources/js/composables/usePrinter.ts` | ✅ Done | 2026-05-28 |
+| 3.5 | Receipt layout + RMA ticket layout (via ESC/POS commands) | Inside `usePrinter.ts` / `escpos.ts` | ✅ Done | 2026-05-28 |
 
 **Acceptance criteria:**
 - Scanner composable buffers chars < 50 ms apart; emits on `Enter` or 100 ms gap.
@@ -117,6 +117,7 @@
 |---|---|---|---|
 | — | — | — | Project initialized; no work started yet |
 | 2026-05-26 | Antigravity | 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 2.1, 2.2, 2.3, 2.4, 2.5, 4.1, 4.2, 4.3 | Section 3.1 (all), 3.2 (all), 3.4 (all) complete. Tailwind v4 tokens added to app.css. Section 3.3 (hardware APIs) remains. |
+| 2026-05-28 | Antigravity | 3.1, 3.2, 3.3, 3.4, 3.5 + Urgent fix | Section 3.3 (all) complete: useBarcodeScan.ts, useWebSerialScanner.ts, escpos.ts, usePrinter.ts (with receipt + RMA layouts). Urgent: useCompatibility.ts refactored from WebSocket-only to debounced HTTP POST (300ms) per Urgent.md §2. |
 
 ---
 

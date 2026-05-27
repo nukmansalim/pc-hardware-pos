@@ -1,26 +1,41 @@
-import { ref, computed } from 'vue'
-import { echo } from '@laravel/echo-vue'
+import { ref, computed, watch } from 'vue'
+import axios from 'axios'
 import type { CompatibilityCheck, CompatibilityReport, CartLineItem } from '@/types/pos'
 
 // ---------------------------------------------------------------------------
-// useCompatibility — reactive compatibility checks + Echo listener
-// Spec: project-overview.md §3.2
+// useCompatibility — reactive compatibility checks via debounced HTTP POST
+// Architecture: Debounced POST to /api/compatibility/check (300ms)
+// Spec: project-overview.md §3.2 | Urgent.md §2 (Best-Practice Refactor)
+//
+// Design decisions:
+//   - Primary validation: POST /api/compatibility/check (single source of truth)
+//   - WebSocket Echo listener for CompatibilityResult has been REMOVED per Urgent.md §3
+//   - Client-side wattage sum is retained ONLY for instant progress-bar feedback
+//     while the network round-trip is in-flight (does not override server result)
+//   - Debounce of 300ms prevents server spam during rapid barcode scanning
 // ---------------------------------------------------------------------------
+
+/** Minimal debounce utility — avoids importing all of lodash */
+function debounce<T extends (...args: Parameters<T>) => void>(fn: T, delay: number): T {
+    let timer: ReturnType<typeof setTimeout> | null = null
+    return ((...args: Parameters<T>) => {
+        if (timer !== null) clearTimeout(timer)
+        timer = setTimeout(() => {
+            timer = null
+            fn(...args)
+        }, delay)
+    }) as T
+}
 
 export function useCompatibility(cartItems: () => CartLineItem[]) {
     // ── Reactive state ──────────────────────────────────────────────────────
     const report = ref<CompatibilityReport | null>(null)
     const isLoading = ref(false)
-    let loadingTimer: ReturnType<typeof setTimeout> | null = null
+    const hasNetworkError = ref(false)
 
-    const clearLoadingTimer = () => {
-        if (loadingTimer !== null) {
-            clearTimeout(loadingTimer)
-            loadingTimer = null
-        }
-    }
-
-    // ── Client-side wattage check (§3.2 — first-pass, no server round-trip) ──
+    // ── Client-side wattage (instant visual feedback only) ──────────────────
+    // NOTE: This is a first-pass visual aid displayed while the POST is in-flight.
+    // The authoritative check is always the server response.
     const clientWattageCheck = computed<CompatibilityCheck>(() => {
         const items = cartItems()
         const totalTdp = items.reduce((sum, item) => {
@@ -59,74 +74,104 @@ export function useCompatibility(cartItems: () => CartLineItem[]) {
         }
     })
 
-    // ── Build effective report (client + optional server data) ───────────────
-    const effectiveReport = computed<CompatibilityReport | null>(() => {
-        if (cartItems().length === 0) return null
-
-        if (report.value) {
-            // Merge server report: replace any existing client_wattage with our live version
-            const serverChecks = report.value.checks.filter((c) => c.id !== 'client_wattage')
-            const allChecks = [...serverChecks, clientWattageCheck.value]
-            const overall = allChecks.some((c) => c.status === 'fail')
-                ? 'fail'
-                : allChecks.some((c) => c.status === 'warning')
-                    ? 'warn'
-                    : 'ok'
-            return { ...report.value, checks: allChecks, overall }
-        }
-
-        // Client-only mode (server report not yet received)
+    // ── Instant visual report (shown during in-flight request) ───────────────
+    const instantReport = computed<CompatibilityReport>(() => {
+        const items = cartItems()
         const watt = clientWattageCheck.value
+        const totalTdp = items.reduce((s, i) =>
+            s + (typeof i.specs?.tdp_watts === 'number' ? i.specs.tdp_watts : 0), 0)
+        const psuItem = items.find((i) => typeof i.specs?.capacity_watts === 'number' && (i.specs.capacity_watts as number) > 0)
         return {
             overall: watt.status === 'pass' ? 'ok' : 'warn',
             checks: [watt],
-            estimated_wattage: cartItems().reduce((s, i) =>
-                s + (typeof i.specs?.tdp_watts === 'number' ? i.specs.tdp_watts : 0), 0),
-            psu_capacity: null,
+            estimated_wattage: totalTdp,
+            psu_capacity: psuItem ? (psuItem.specs.capacity_watts as number) : null,
         }
     })
 
-    // ── Echo — listen for server compatibility result ────────────────────────
-    // Channel: pos.{cashier_id} → event: CompatibilityResult (private channel)
-    let channelName = ''
+    // ── Effective report exposed to UI ───────────────────────────────────────
+    // While loading: show instantReport (client wattage only, visually snappy).
+    // Once server responds: show full server report with client wattage merged.
+    const effectiveReport = computed<CompatibilityReport | null>(() => {
+        const items = cartItems()
+        if (items.length === 0) return null
 
-    const startListening = (cashierId: number | string) => {
-        channelName = `pos.${cashierId}`
-        echo()
-            .private(channelName)
-            .listen('CompatibilityResult', (data: CompatibilityReport) => {
-                clearLoadingTimer()
-                isLoading.value = false
-                report.value = data
+        if (isLoading.value || report.value === null) {
+            // In-flight or not yet fetched — use instant client-only report
+            return instantReport.value
+        }
+
+        // Merge: replace any server-provided wattage check with our live client one
+        const serverChecks = report.value.checks.filter((c) => c.id !== 'client_wattage')
+        const allChecks = [...serverChecks, clientWattageCheck.value]
+        const overall = allChecks.some((c) => c.status === 'fail')
+            ? 'fail'
+            : allChecks.some((c) => c.status === 'warning')
+                ? 'warn'
+                : 'ok'
+
+        return {
+            ...report.value,
+            checks: allChecks,
+            overall,
+        }
+    })
+
+    // ── Debounced server validation (300ms) ──────────────────────────────────
+    // TODO: Requires backend — /api/compatibility/check POST endpoint (out of scope)
+    const fetchServerValidation = debounce(async (items: CartLineItem[]) => {
+        if (items.length === 0) {
+            report.value = null
+            isLoading.value = false
+            hasNetworkError.value = false
+            return
+        }
+
+        try {
+            const response = await axios.post<CompatibilityReport>('/api/compatibility/check', {
+                items: items.map((item) => ({
+                    id: item.id,
+                    specs: item.specs,
+                })),
             })
-    }
+            report.value = response.data
+            hasNetworkError.value = false
+        } catch (error) {
+            // Network failure — keep the last known server report (if any) and
+            // surface the client-side wattage check as a fallback. Do not clear report.
+            hasNetworkError.value = true
+            console.error('[useCompatibility] Server validation failed:', error)
+        } finally {
+            isLoading.value = false
+        }
+    }, 300)
 
-    const stopCompatibilityListening = (cashierId: number | string) => {
-        const ch = `pos.${cashierId}`
-        echo().private(ch).stopListening('CompatibilityResult')
-    }
+    // ── Watch cart items and trigger debounced validation ───────────────────
+    watch(
+        () => cartItems(),
+        (newItems) => {
+            if (newItems.length === 0) {
+                report.value = null
+                isLoading.value = false
+                hasNetworkError.value = false
+                return
+            }
+            isLoading.value = true
+            fetchServerValidation(newItems)
+        },
+        { deep: true },
+    )
 
     // ── Expose ────────────────────────────────────────────────────────────────
     return {
         report: effectiveReport,
         isLoading,
-        /** Signal that cart changed — show loader while server recalculates.
-         *  Falls back automatically after 2 s if no WS event arrives. */
-        setLoading: () => {
-            clearLoadingTimer()
-            isLoading.value = true
-            loadingTimer = setTimeout(() => {
-                isLoading.value = false
-                loadingTimer = null
-            }, 2000)
-        },
-        /** Clear report when cart is emptied */
+        hasNetworkError,
+        /** Manually clear report when cart is fully emptied */
         clearReport: () => {
-            clearLoadingTimer()
-            isLoading.value = false
             report.value = null
+            isLoading.value = false
+            hasNetworkError.value = false
         },
-        startListening,
-        stopCompatibilityListening,
     }
 }

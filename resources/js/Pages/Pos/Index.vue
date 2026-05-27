@@ -84,7 +84,7 @@ const pendingAddItem = ref<CartLineItem | null>(null)
 // ---------------------------------------------------------------------------
 // 10. Composables
 // ---------------------------------------------------------------------------
-const { report, isLoading: compatLoading, setLoading, clearReport, startListening: startCompatibility, stopCompatibilityListening } =
+const { report, isLoading: compatLoading, clearReport } =
     useCompatibility(() => cart.value)
 
 const { notifications, subscribe, unsubscribe, dismiss, notify } = useNotifications()
@@ -95,7 +95,6 @@ const handleAddItem = (item: CartLineItem) => {
     if (cart.value.some((i) => i.serial_number === item.serial_number)) return
     cart.value = [...cart.value, item]
     searchQuery.value = ''
-    setLoading() // trigger compatibility re-check
     notify('success', 'Item Added', `${item.product_name} — SN: ${item.serial_number}`)
     cartPanelRef.value?.focusSearch()
 }
@@ -152,7 +151,6 @@ const failedCompatibilityChecks = computed<CompatibilityCheck[]>(() =>
 const removeItem = (id: string) => {
     cart.value = cart.value.filter((i) => i.id !== id)
     if (cart.value.length === 0) clearReport()
-    setLoading()
 }
 
 const handleCheckout = () => {
@@ -220,23 +218,17 @@ const handleGlobalKeydown = (e: KeyboardEvent) => {
 onMounted(() => {
     window.addEventListener('keydown', handleGlobalKeydown)
     subscribe(cashierId.value)
-    startCompatibility(cashierId.value)
 })
 
 onUnmounted(() => {
     window.removeEventListener('keydown', handleGlobalKeydown)
     unsubscribe(cashierId.value)
-    stopCompatibilityListening(cashierId.value)
 })
 
 // Re-subscribe if cashier changes (edge case: login switch without page reload)
 watch(cashierId, (newId, oldId) => {
-    if (oldId) {
-        unsubscribe(oldId)
-        stopCompatibilityListening(oldId)
-    }
+    if (oldId) unsubscribe(oldId)
     subscribe(newId)
-    startCompatibility(newId)
 })
 </script>
 
