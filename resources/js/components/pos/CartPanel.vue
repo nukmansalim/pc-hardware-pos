@@ -10,12 +10,14 @@ import CartLineItem from '@/components/pos/CartLineItem.vue'
 
 // 4. Types
 import type { CartLineItem as CartLineItemType } from '@/types/pos'
+import type { ProductSearchResult } from '@/types/pos'
 
 // 5. Props
 const props = defineProps<{
     items: CartLineItemType[]
     focusedId?: string | null
     searchQuery?: string
+    searchResults?: ProductSearchResult[]
 }>()
 
 // 6. Emits
@@ -26,10 +28,15 @@ const emit = defineEmits<{
     'update:searchQuery': [query: string]
     requestCheckout: []
     requestCompatibility: []
+    // 'selectSerial' is emitted for dropdown selections — Index.vue decides modal vs direct add
+    selectSerial: [item: CartLineItemType]
 }>()
 
 // 7. Reactive state
 const listRef = ref<HTMLElement | null>(null)
+const searchInputRef = ref<HTMLInputElement | null>(null)
+const dropdownRef = ref<HTMLElement | null>(null)
+const showDropdown = computed(() => (props.searchResults?.length ?? 0) > 0)
 
 // 8. Computed
 const isEmpty = computed(() => props.items.length === 0)
@@ -72,6 +79,27 @@ const moveFocus = (direction: 'up' | 'down') => {
 const handleRemoveFocused = () => {
     if (props.focusedId) emit('removeItem', props.focusedId)
 }
+
+const selectSerial = (result: ProductSearchResult, serial: { id: string; serial_number: string }) => {
+    const item: CartLineItemType = {
+        id: serial.id,
+        product_name: result.product_name,
+        sku: result.sku,
+        serial_number: serial.serial_number,
+        unit_price: result.unit_price,
+        status: 'IN_STOCK',
+        specs: result.specs,
+    }
+    // Emit to Index.vue — it will check the bypass preference and decide modal vs direct add
+    emit('selectSerial', item)
+    emit('update:searchQuery', '')
+}
+
+const formatPrice = (price: number) =>
+    new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(price)
+
+// Expose the search input so Index.vue can focus it via keyboard shortcut
+defineExpose({ focusSearch: () => searchInputRef.value?.focus() })
 </script>
 
 <template>
@@ -109,8 +137,9 @@ const handleRemoveFocused = () => {
                 <Search class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-pos-text-muted" aria-hidden="true" />
                 <input
                     id="cart-search"
+                    ref="searchInputRef"
                     type="text"
-                    placeholder="Scan barcode or search product… (F2)"
+                    placeholder="Scan barcode or search product… (press /)"
                     :value="searchQuery"
                     @input="emit('update:searchQuery', ($event.target as HTMLInputElement).value)"
                     class="w-full pl-8 pr-3 py-2 rounded-lg bg-pos-surface-raised border border-pos-border text-pos-text-primary text-sm
@@ -118,7 +147,57 @@ const handleRemoveFocused = () => {
                            transition-colors duration-150 hover:border-pos-border-strong
                            focus:outline-none focus:ring-2 focus:ring-pos-primary focus:border-transparent"
                     aria-label="Search products or scan barcode"
+                    aria-autocomplete="list"
+                    aria-controls="search-results-dropdown"
+                    :aria-expanded="showDropdown"
                 />
+
+                <!-- Search results dropdown -->
+                <div
+                    v-if="showDropdown"
+                    id="search-results-dropdown"
+                    ref="dropdownRef"
+                    role="listbox"
+                    aria-label="Search results"
+                    class="absolute top-full left-0 right-0 z-30 mt-1 rounded-lg border border-pos-border
+                           bg-pos-surface-raised shadow-lg max-h-72 overflow-y-auto"
+                >
+                    <div
+                        v-for="result in searchResults"
+                        :key="result.sku"
+                        class="border-b border-pos-border last:border-b-0"
+                    >
+                        <!-- Product group header -->
+                        <div class="px-3 py-2 bg-pos-surface-sunken flex items-center justify-between">
+                            <div>
+                                <span class="text-xs font-semibold text-pos-text-primary">{{ result.product_name }}</span>
+                                <span class="ml-2 text-xs text-pos-text-muted font-mono">{{ result.sku }}</span>
+                            </div>
+                            <span class="text-xs font-bold text-pos-text-accent">
+                                {{ formatPrice(result.unit_price) }}
+                            </span>
+                        </div>
+
+                        <!-- Serial number rows -->
+                        <button
+                            v-for="serial in result.available_serials"
+                            :key="serial.id"
+                            type="button"
+                            role="option"
+                            class="w-full flex items-center justify-between px-4 py-2 text-left
+                                   transition-colors duration-100 hover:bg-pos-primary-subtle
+                                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pos-primary focus-visible:ring-inset
+                                   min-h-[44px]"
+                            @click="selectSerial(result, serial)"
+                        >
+                            <span class="text-sm font-mono text-pos-text-primary">{{ serial.serial_number }}</span>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
+                                         bg-success-subtle text-success">
+                                IN STOCK
+                            </span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 

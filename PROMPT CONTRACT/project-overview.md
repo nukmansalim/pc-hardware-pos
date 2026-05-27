@@ -103,6 +103,12 @@ interface CartLineItem {
 }
 ```
 
+- **Smart Search & Selection Logic:**
+  - **Exact Match:** If the search input matches an exact Serial Number, add the item to the cart directly without any confirmation.
+  - **Discovery Match:** If the search input matches a general product name or SKU, display a dropdown list of available `IN_STOCK` Serial Numbers for that product.
+  - **Confirmation Modal:** When the cashier selects a Serial Number from the dropdown, display a confirmation modal (e.g., "Add [Product Name] - SN: [Serial Number] to cart?").
+  - **Bypass Preference:** The confirmation modal MUST include a "Don't show this again" checkbox. If checked, persist this preference (e.g., via `localStorage`). Subsequent dropdown selections must respect this preference, bypass the modal, and instantly add the item to the cart.
+
 ---
 
 ### 3.2 Real-Time Compatibility Dashboard ("Will It Boot?")

@@ -95,4 +95,17 @@ class InventoryAggregate extends AggregateRoot
 
         return $this;
     }
+
+    public function addItemToCart(string $inventoryItemId)
+    {
+        $item = InventoryItem::find($inventoryItemId);
+
+        // Karantina ketat: Jangan biarkan barang rusak atau sudah terjual masuk keranjang
+        if (! $item || $item->status !== 'IN_STOCK') {
+            throw new \Exception('Item ini tidak tersedia atau sedang dalam proses RMA.');
+        }
+
+        // Jika lolos, catat event-nya ke dalam stored_events
+        $this->recordThat(new ItemAddedToCart($inventoryItemId));
+    }
 }

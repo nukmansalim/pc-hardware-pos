@@ -17,6 +17,16 @@ export interface CartLineItem {
     specs: Record<string, string | number> // e.g. { socket: 'AM5', tdp_watts: 125 }
 }
 
+/** Spec §3.1 Search Logic — result shape for the serial-number selection dropdown */
+export interface ProductSearchResult {
+    product_name: string
+    sku: string
+    unit_price: number
+    specs: Record<string, string | number>
+    /** Only IN_STOCK serials not already in the cart */
+    available_serials: Array<{ id: string; serial_number: string }>
+}
+
 // ---------------------------------------------------------------------------
 // Section 3.2 — Compatibility Report
 // ---------------------------------------------------------------------------

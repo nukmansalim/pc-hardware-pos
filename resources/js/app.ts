@@ -25,6 +25,9 @@ createInertiaApp({
         switch (true) {
             case name === 'Welcome':
                 return null;
+            // POS pages are full-screen standalone terminals — no sidebar needed
+            case name.startsWith('Pos/'):
+                return null;
             case name.startsWith('auth/'):
                 return AuthLayout;
             case name.startsWith('settings/'):

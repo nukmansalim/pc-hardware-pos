@@ -11,6 +11,14 @@ export function useCompatibility(cartItems: () => CartLineItem[]) {
     // ── Reactive state ──────────────────────────────────────────────────────
     const report = ref<CompatibilityReport | null>(null)
     const isLoading = ref(false)
+    let loadingTimer: ReturnType<typeof setTimeout> | null = null
+
+    const clearLoadingTimer = () => {
+        if (loadingTimer !== null) {
+            clearTimeout(loadingTimer)
+            loadingTimer = null
+        }
+    }
 
     // ── Client-side wattage check (§3.2 — first-pass, no server round-trip) ──
     const clientWattageCheck = computed<CompatibilityCheck>(() => {
@@ -87,6 +95,7 @@ export function useCompatibility(cartItems: () => CartLineItem[]) {
         echo()
             .private(channelName)
             .listen('CompatibilityResult', (data: CompatibilityReport) => {
+                clearLoadingTimer()
                 isLoading.value = false
                 report.value = data
             })
@@ -101,10 +110,22 @@ export function useCompatibility(cartItems: () => CartLineItem[]) {
     return {
         report: effectiveReport,
         isLoading,
-        /** Signal that cart changed — show loader while server recalculates */
-        setLoading: () => { isLoading.value = true },
+        /** Signal that cart changed — show loader while server recalculates.
+         *  Falls back automatically after 2 s if no WS event arrives. */
+        setLoading: () => {
+            clearLoadingTimer()
+            isLoading.value = true
+            loadingTimer = setTimeout(() => {
+                isLoading.value = false
+                loadingTimer = null
+            }, 2000)
+        },
         /** Clear report when cart is emptied */
-        clearReport: () => { report.value = null },
+        clearReport: () => {
+            clearLoadingTimer()
+            isLoading.value = false
+            report.value = null
+        },
         startListening,
         stopCompatibilityListening,
     }

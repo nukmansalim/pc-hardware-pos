@@ -18,11 +18,13 @@ import CartPanel from '@/components/pos/CartPanel.vue'
 import BuildStatus from '@/components/pos/BuildStatus.vue'
 import CheckoutModal from '@/components/pos/CheckoutModal.vue'
 import OverrideModal from '@/components/pos/OverrideModal.vue'
+import AddToCartConfirmModal from '@/components/pos/AddToCartConfirmModal.vue'
 import ToastStack from '@/components/ui/ToastStack.vue'
 
 // 4. Composables
 import { useCompatibility } from '@/composables/useCompatibility'
 import { useNotifications } from '@/composables/useNotifications'
+import { useProductSearch } from '@/composables/useProductSearch'
 
 // 5. Types
 import type { CartLineItem, CompatibilityCheck } from '@/types/pos'
@@ -68,7 +70,16 @@ const focusedItemId = ref<string | null>(null)
 const showCheckout = ref(false)
 const showOverride = ref(false)
 const showCompatibilityPanel = ref(true)
-const searchInputRef = ref<HTMLInputElement | null>(null)
+// Ref to CartPanel component — used to call focusSearch() from keyboard shortcut
+const cartPanelRef = ref<{ focusSearch: () => void } | null>(null)
+
+// ---------------------------------------------------------------------------
+// §3.1 Bypass Preference — "Don't show this again" persisted to localStorage
+// ---------------------------------------------------------------------------
+const BYPASS_KEY = 'pos:bypass_add_confirm'
+const bypassAddConfirm = ref(localStorage.getItem(BYPASS_KEY) === 'true')
+const showAddConfirm = ref(false)
+const pendingAddItem = ref<CartLineItem | null>(null)
 
 // ---------------------------------------------------------------------------
 // 10. Composables
@@ -77,6 +88,48 @@ const { report, isLoading: compatLoading, setLoading, clearReport, startListenin
     useCompatibility(() => cart.value)
 
 const { notifications, subscribe, unsubscribe, dismiss, notify } = useNotifications()
+
+// MOCK — remove when Inertia prop is available; useProductSearch uses mock catalog
+const handleAddItem = (item: CartLineItem) => {
+    // Guard: prevent adding the same serial number twice
+    if (cart.value.some((i) => i.serial_number === item.serial_number)) return
+    cart.value = [...cart.value, item]
+    searchQuery.value = ''
+    setLoading() // trigger compatibility re-check
+    notify('success', 'Item Added', `${item.product_name} — SN: ${item.serial_number}`)
+    cartPanelRef.value?.focusSearch()
+}
+
+/**
+ * Called when cashier selects a serial from the dropdown (Discovery Match).
+ * Routes through the confirmation modal unless the bypass preference is set.
+ */
+const handleSerialSelected = (item: CartLineItem) => {
+    if (bypassAddConfirm.value) {
+        handleAddItem(item)
+    } else {
+        pendingAddItem.value = item
+        showAddConfirm.value = true
+    }
+}
+
+const handleAddConfirm = (bypass: boolean) => {
+    if (bypass) {
+        bypassAddConfirm.value = true
+        localStorage.setItem(BYPASS_KEY, 'true')
+    }
+    if (pendingAddItem.value) handleAddItem(pendingAddItem.value)
+    showAddConfirm.value = false
+    pendingAddItem.value = null
+}
+
+const handleAddConfirmClose = () => {
+    showAddConfirm.value = false
+    pendingAddItem.value = null
+    cartPanelRef.value?.focusSearch()
+}
+
+const { searchResults } = useProductSearch(searchQuery, cart, handleAddItem)
 
 // ---------------------------------------------------------------------------
 // 11. Computed
@@ -128,14 +181,21 @@ const handlePaymentConfirm = (payload: { paymentMethod: string; cashReceived: nu
 // 13. Global keyboard shortcuts
 // ---------------------------------------------------------------------------
 const handleGlobalKeydown = (e: KeyboardEvent) => {
-    // Skip if inside an input/textarea (except F-keys)
     const tag = (e.target as HTMLElement).tagName.toLowerCase()
-    const inInput = (tag === 'input' || tag === 'textarea') && !e.key.startsWith('F')
+    const inInput = tag === 'input' || tag === 'textarea'
 
     switch (e.key) {
+        // F2 kept for spec compliance; '/' is the practical alias when F2 is blocked by the OS
         case 'F2':
             e.preventDefault()
-            searchInputRef.value?.focus()
+            cartPanelRef.value?.focusSearch()
+            break
+        case '/':
+            // Only fire when NOT already inside a text field
+            if (!inInput) {
+                e.preventDefault()
+                cartPanelRef.value?.focusSearch()
+            }
             break
         case 'F10':
             e.preventDefault()
@@ -148,6 +208,8 @@ const handleGlobalKeydown = (e: KeyboardEvent) => {
         case 'Escape':
             if (showCheckout.value) { showCheckout.value = false; return }
             if (showOverride.value) { showOverride.value = false; return }
+            // Blur search input on Escape if focused
+            if (inInput) (e.target as HTMLElement).blur()
             break
     }
 }
@@ -191,7 +253,7 @@ watch(cashierId, (newId, oldId) => {
             <div class="flex items-center gap-4 text-xs text-pos-border-panel">
                 <!-- Keyboard legend summary -->
                 <span class="hidden md:flex items-center gap-3">
-                    <span><kbd class="px-1.5 py-0.5 rounded bg-pos-terminal-700 text-pos-surface-panel-fg font-mono">F2</kbd> Search</span>
+                    <span><kbd class="px-1.5 py-0.5 rounded bg-pos-terminal-700 text-pos-surface-panel-fg font-mono">/</kbd> Search</span>
                     <span><kbd class="px-1.5 py-0.5 rounded bg-pos-terminal-700 text-pos-surface-panel-fg font-mono">F10</kbd> Compat.</span>
                     <span><kbd class="px-1.5 py-0.5 rounded bg-pos-terminal-700 text-pos-surface-panel-fg font-mono">F12</kbd> Checkout</span>
                     <span><kbd class="px-1.5 py-0.5 rounded bg-pos-terminal-700 text-pos-surface-panel-fg font-mono">Esc</kbd> Close</span>
@@ -208,12 +270,15 @@ watch(cashierId, (newId, oldId) => {
                 aria-label="Shopping cart"
             >
                 <CartPanel
+                    ref="cartPanelRef"
                     :items="cart"
                     :focused-id="focusedItemId"
                     :search-query="searchQuery"
+                    :search-results="searchResults"
                     @remove-item="removeItem"
                     @update:focused-id="focusedItemId = $event"
                     @update:search-query="searchQuery = $event"
+                    @select-serial="handleSerialSelected"
                     @request-checkout="handleCheckout"
                     @request-compatibility="showCompatibilityPanel = !showCompatibilityPanel"
                 />
@@ -245,6 +310,14 @@ watch(cashierId, (newId, oldId) => {
             :checks="failedCompatibilityChecks"
             @close="showOverride = false"
             @override="handleOverrideConfirm"
+        />
+
+        <!-- §3.1 Add-to-Cart Confirmation Modal -->
+        <AddToCartConfirmModal
+            :open="showAddConfirm"
+            :item="pendingAddItem"
+            @close="handleAddConfirmClose"
+            @confirm="handleAddConfirm"
         />
 
         <!-- Toast notifications (never over cart/checkout — z-40 vs modal z-50) -->

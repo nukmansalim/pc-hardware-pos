@@ -70,7 +70,7 @@ const statusRowClasses = (status: CompatibilityCheck['status']) => {
 
         <!-- Body -->
         <div class="flex-1 flex flex-col px-3 py-3 gap-3 overflow-y-auto">
-            <!-- Empty / waiting state -->
+            <!-- Empty state — cart has no items at all -->
             <div
                 v-if="!report && !isLoading"
                 class="flex-1 flex flex-col items-center justify-center py-10 text-center"
@@ -79,14 +79,25 @@ const statusRowClasses = (status: CompatibilityCheck['status']) => {
                 <p class="text-sm text-pos-text-secondary">Add items to the cart to run compatibility checks.</p>
             </div>
 
-            <!-- Loading skeleton -->
-            <div v-else-if="isLoading" class="space-y-2 animate-pulse">
+            <!-- Initial loading skeleton — only before first result arrives -->
+            <div v-else-if="!report && isLoading" class="space-y-2 animate-pulse">
                 <div class="h-4 rounded bg-pos-surface-sunken w-3/4" />
                 <div class="h-4 rounded bg-pos-surface-sunken w-1/2" />
                 <div class="h-4 rounded bg-pos-surface-sunken w-2/3" />
             </div>
 
-            <template v-else-if="report">
+            <template v-if="report">
+                <!-- Recalculating badge — shown while isLoading but report already exists -->
+                <div
+                    v-if="isLoading"
+                    class="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs
+                           bg-pos-surface-sunken border border-pos-border text-pos-text-muted animate-pulse"
+                    role="status"
+                    aria-label="Recalculating compatibility"
+                >
+                    <span class="inline-block w-1.5 h-1.5 rounded-full bg-pos-warning" aria-hidden="true"></span>
+                    Recalculating…
+                </div>
                 <!-- Overall status banner -->
                 <div
                     :class="[
