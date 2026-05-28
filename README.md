@@ -1,4 +1,3 @@
-```markdown
 # PC Hardware Point-of-Sale (POS) System
 
 A modern Point-of-Sale (POS) system engineered specifically for PC hardware and component retail. This project utilizes an **Event Sourcing** approach for highly accurate inventory tracking and an integrated **Compatibility Engine** to ensure real-time PC build validation.
@@ -98,4 +97,3 @@ npm run build
 ## About
 
 This project was built with a focus on performance, auditability, and real-world retail hardware store needs. It combines modern Laravel practices with a powerful Vue 3 + Inertia frontend.
-```
